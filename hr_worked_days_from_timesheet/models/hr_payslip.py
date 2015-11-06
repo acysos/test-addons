@@ -71,6 +71,8 @@ class HrPayslip(models.Model):
             # get user date format
             date_format = self.env['res.lang'].search(
                 [('code', '=', self.env.user.lang)]).date_format
+            if not date_format:
+                date_format = 'en_US'
 
             # Delete old imported worked_days
             # The reason to delete these records is that the user may make
