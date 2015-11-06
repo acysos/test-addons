@@ -7,8 +7,6 @@
     login: 'tua@example.com'
     password: 'base-test-passwd'
     active: True
-    lang: 'en_US'
-    
 -
   Create an employee
 -
@@ -116,6 +114,7 @@
     contract_id: contract_1
     date_from: '2014-01-02'
     date_to: '2014-01-15'
+    date_format: '%m/%d/%Y'
 -
   Test the worked days from timesheet function
 -
