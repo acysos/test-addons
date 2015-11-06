@@ -117,7 +117,7 @@
 -
   Test the worked days from timesheet function
 -
-  !python {model: hr.payslip}: |
+  !python {model: hr.payslip, id: hr_payslip_test01}: |
     self.import_worked_days([ref("payslip_1")])
     payslip = self.browse(ref('payslip_1'))
     for wd in payslip.worked_days_line_ids:
@@ -130,8 +130,8 @@
   Test again to verify that old records get erased
   as the function is called a second time
 -
-  !python {model: hr.payslip}: |
-    self.import_worked_days(cr, uid, [ref("payslip_1")])
-    payslip = self.browse(cr, uid, ref('payslip_1'))
+  !python {model: hr.payslip, id: hr_payslip_test02}: |
+    self.import_worked_days([ref("payslip_1")])
+    payslip = self.browse(ref('payslip_1'))
     # we should still have only 2 timesheets
     assert(len(payslip.worked_days_line_ids) == 2)
