@@ -114,13 +114,12 @@
     contract_id: contract_1
     date_from: '2014-01-02'
     date_to: '2014-01-15'
-    date_format: '%m/%d/%Y'
 -
   Test the worked days from timesheet function
 -
   !python {model: hr.payslip}: |
-    self.import_worked_days(cr, uid, [ref("payslip_1")])
-    payslip = self.browse(cr, uid, ref('payslip_1'))
+    self.import_worked_days([ref("payslip_1")])
+    payslip = self.browse(ref('payslip_1'))
     for wd in payslip.worked_days_line_ids:
       # 2 worked days
       # one for timesheet 4 (11.5 hours)
