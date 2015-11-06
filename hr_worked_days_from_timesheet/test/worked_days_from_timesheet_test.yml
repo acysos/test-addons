@@ -7,6 +7,8 @@
     login: 'tua@example.com'
     password: 'base-test-passwd'
     active: True
+    lang: 'en_US'
+    
 -
   Create an employee
 -
