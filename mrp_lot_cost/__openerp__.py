@@ -19,13 +19,12 @@
 #
 ##############################################################################
 {
-    "name": "A module for calculating the costs of one lot according to the "
-    "cost of raw materials",
+    "name": "MRP Lot Unit Cost",
     "version": "1",
-    "author": "Acysos S.L.",
+    "author": "Acysos S.L., Odoo Community Association (OCA)",
     "website": "www.acysos.com",
-    "contributors": ['Alexander Ezquevo alexander@acysos.com', ],
-    "category": "Specific industry",
+    "contributors": ['Alexander Ezquevo <alexander@acysos.com>', ],
+    "category": "Manufacturing",
     "license": "AGPL-3",
     "depends": [
         "mrp",

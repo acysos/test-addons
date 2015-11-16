@@ -1,26 +1,24 @@
-*********************************REVISAR***************************
-
-
 .. image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
    :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
    :alt: License: AGPL-3
 
-==============
-mrp_lot_cost
-==============
+=================
+MRP Lot Unit Cost
+=================
 
 This module calculates the unit cost of a manufacturing lot taking the costs
-of buying lots of raw materials, the value is stored in stock.production.lot but this thought is not displayed as a tool for other modules
+of buying lots of raw materials, the value is stored in stock.production.lot
+but this thought is not displayed as a tool for other modules
 
 Installation
 ============
 
 To install this module, you need to:
 
-* clone the branch 8.0 of the repository https://github.com/OCA/vertical-agriculture
+* clone the branch 8.0 of the repository https://github.com/OCA/manufacture
 * add the path to this repository in your configuration (addons-path)
 * update the module list
-* search for "farm_prescription" in your addons
+* search for "mrp_lot_cost" in your addons
 * install the module
 
 
@@ -29,14 +27,12 @@ Usage
 
 To use this module, you need to:
 
-* farm (https://github.com/OCA/vertical-agriculture)
+* mrp
 
 .. image:: https://odoo-community.org/website/image/ir.attachment/5784_f2813bd/datas
    :alt: Try me on Runbot
-   :target: https://runbot.odoo-community.org/runbot/{repo_id}/{branch}
+   :target: https://runbot.odoo-community.org/runbot/129/8.0
 
-.. repo_id is available in https://github.com/OCA/maintainer-tools/blob/master/tools/repos_with_ids.txt
-.. branch is "8.0" for example
 
 Known issues / Roadmap
 ======================
@@ -46,13 +42,11 @@ Known issues / Roadmap
 Bug Tracker
 ===========
 
-Bugs are tracked on `GitHub Issues <https://github.com/OCA/
-https://github.com/OCA/vertical-agriculture/issues>`_.
+Bugs are tracked on `GitHub Issues <https://github.com/OCA/manufacture/issues>.
 In case of trouble, please check there if your issue has already been reported.
-If you spotted it first, help us smashing it by providing a detailed and welcomed feedback `here <https://github.com/OCA/
-https://github.com/OCA/vertical-agriculture/issues/new?body=module:%20
-mrp_lot_cost%0Aversion:%20
-8.0%0A%0A**Steps%20to%20reproduce**%0A-%20...%0A%0A**Current%20behavior**%0A%0A**Expected%20behavior**>`_.
+If you spotted it first, help us smashing it by providing a detailed and welcomed feedback 
+`here <https://github.com/OCA/
+https://github.com/OCA/manufacture/issues/new?body=module:%20mrp_lot_cost%0Aversion:%208.0%0A%0A**Steps%20to%20reproduce**%0A-%20...%0A%0A**Current%20behavior**%0A%0A**Expected%20behavior**>`_.
 
 
 Credits
