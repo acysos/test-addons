@@ -19,7 +19,7 @@
 #
 ##############################################################################
 
-from openerp import models, fields, api, _
+from openerp import models, fields, api
 
 
 class Lot(models.Model):
@@ -33,8 +33,8 @@ class MRP_production(models.Model):
 
     @api.multi
     def action_produce(
-                self, production_qty, production_mode,
-                wiz=False):
+            self, production_qty, production_mode,
+            wiz=False):
         if wiz and wiz.lot_id and len(wiz.consume_lines) > 0:
             control = True
             for line in wiz.consume_lines:
@@ -43,9 +43,7 @@ class MRP_production(models.Model):
             if(control):
                 self.calculateCost(wiz)
         super(MRP_production, self).action_produce(
-                self.id,
-                production_qty, production_mode,
-                wiz)
+            self.id, production_qty, production_mode, wiz)
 
     @api.one
     def calculateCost(self, wiz):
@@ -53,8 +51,8 @@ class MRP_production(models.Model):
         totalCost = 0.0
         for line in wiz.consume_lines:
             moves = stock_quant_obj.search([
-                    ('product_id', '=', line.product_id.id,),
-                    ('lot_id', '=', line.lot_id.id)])
+                ('product_id', '=', line.product_id.id,),
+                ('lot_id', '=', line.lot_id.id)])
             qty = 0.0
             amount = 0.0
             for move in moves:
@@ -64,7 +62,7 @@ class MRP_production(models.Model):
             totalCost += line.product_qty * unit_price
         if wiz.lot_id.unit_cost:
             initial_lots = stock_quant_obj.search([
-                        ('lot_id', '=', wiz.lot_id.id)])
+                ('lot_id', '=', wiz.lot_id.id)])
             initial_totalCost = 0.0
             totalQty = 0.0
             for q in initial_lots:
@@ -75,5 +73,3 @@ class MRP_production(models.Model):
             wiz.lot_id.unit_cost = totalCost/totalQty
         else:
             wiz.lot_id.unit_cost = totalCost/wiz.product_qty
-
-            
