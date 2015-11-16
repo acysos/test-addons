@@ -63,7 +63,6 @@ class MRP_production(models.Model):
             unit_price = amount/qty
             totalCost += line.product_qty * unit_price
         if wiz.lot_id.unit_cost:
-            print 'media'
             initial_lots = stock_quant_obj.search([
                         ('lot_id', '=', wiz.lot_id.id)])
             initial_totalCost = 0.0
