@@ -241,8 +241,7 @@ class TransformationEvent(models.Model):
         else:
             animal.product_id = self.animal_group.specie.individual_product.id
         new_lot = production_lot_obj.create({
-            'product_id': animal.product_id.id
-                    })
+            'product_id': animal.product_id.id})
         animal.lot_id = new_lot
         self.move = new_move
         sex = {'male': 'male',

@@ -16,8 +16,8 @@ class PregnancyDiagnosisEvent(models.Model):
         ('negative', 'Negative'), ('positive', 'Positive'),
         ('nonconclusive', 'Non conclusive'),
         ('not-pregnant', 'Observed not Pregnant'), ],
-                              string='Result',
-                              required=True, default='positive')
+        string='Result',
+        required=True, default='positive')
     female_cycle = fields.Many2one(comodel_name='farm.animal.female_cycle',
                                    string='Female Cycle')
 

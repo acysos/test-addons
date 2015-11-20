@@ -1,6 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_abort_event,AbortEvent,model_farm_abort_event,group_farm_manager,1,1,1,1
-access_abort_event_female_cycle,AbortEventFemaleCycle,model_farm_abort_event_female_cycle,group_farm_manager,1,1,1,1
 access_animal_group,AnimalGroup,model_farm_animal_group,group_farm_manager,1,1,1,1
 access_animal_group_weight,AnimalGroupWeight,model_farm_animal_group_weight,group_farm_manager,1,1,1,1
 access_tag,Tag,model_farm_tags,group_farm_manager,1,1,1,1

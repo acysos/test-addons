@@ -137,6 +137,5 @@ class RemovalEvent(models.Model):
             if self.animal.location.id != self.from_location.id:
                 raise Warning(
                     _('the origin is different from the location of'
-                    ' the animal'))
+                      ' the animal'))
         return True
-                    

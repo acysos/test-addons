@@ -88,9 +88,9 @@ class LotAnimalGroup(models.Model):
                           string='Lot', required=True,
                           ondelete='RESTRICT', select=True)
     animal_group = fields.Many2one(
-                        comodel_name='farm.animal.group',
-                        string='Animal Group', required=True,
-                        ondelete='RESTRICT', select=True)
+        comodel_name='farm.animal.group',
+        string='Animal Group', required=True,
+        ondelete='RESTRICT', select=True)
 
 
 class Location(models.Model):

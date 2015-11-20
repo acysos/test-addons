@@ -87,14 +87,12 @@ class FeedProvisionalInventory(models.Model):
             return None
 
         prev_prov_inventories = self.search([
-                ('location', '=', self.location.id),
-                ('timestamp', '<', self.timestamp),
-                ('timestamp', '>', prev_inventories[0].timestamp),
-                ('state', '=', 'validated'),
-                ],
-            order=[
-                ('timestamp', 'DESC'),
-                ], limit=1)
+            ('location', '=', self.location.id),
+            ('timestamp', '<', self.timestamp),
+            ('timestamp', '>', prev_inventories[0].timestamp),
+            ('state', '=', 'validated'),
+            ],
+            order=[('timestamp', 'DESC'), ], limit=1)
         if prev_prov_inventories:
             return prev_prov_inventories[0].timestamp.date()
         return prev_inventories[0].timestamp.date()
