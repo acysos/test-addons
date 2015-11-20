@@ -1,32 +1,17 @@
-# -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    @authors: Alexander Ezquevo <alexander@acysos.com>
-#    Copyright (C) 2015  Acysos S.L.
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
+# -*- coding: utf-8 -*-
+# @authors: Alexander Ezquevo <alexander@acysos.com>
+# Copyright (C) 2015  Acysos S.L.
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 from openerp import models, fields, api, _
-from openerp.exceptions import except_orm
+from openerp.exceptions import Warning
 import math
 
 
 class SemenExtractionEvent(models.Model):
     _name = 'farm.semen_extraction.event'
     _inherit = {'farm.event': 'AbstractEvent_id'}
+    _auto = True
 
     semen_product = fields.Many2one(comodel_name='product.product',
                                     string="Semen's Product")
@@ -49,19 +34,19 @@ class SemenExtractionEvent(models.Model):
                                string='Dose Container',
                                )
     dose_calculated_units = fields.Float(
-            string='Calculated Doses',
-            help='Calculates the number of doses based on Container (BoM) and '
-            'Semen Produced Qty. The quantity is expressed in the UoM of the '
-            'Container.\n'
-            'You have to save the event to see this calculated value.',
-            compute='on_change_with_dose_calculated_units')
+        string='Calculated Doses',
+        help='Calculates the number of doses based on Container (BoM) and '
+        'Semen Produced Qty. The quantity is expressed in the UoM of the '
+        'Container.\n'
+        'You have to save the event to see this calculated value.',
+        compute='on_change_with_dose_calculated_units')
     doses = fields.One2many(comodel_name='farm.semen_extraction.dose',
                             inverse_name='event', string='Doses')
     doses_semen_qty = fields.Float(string='Dose Semen Qty',
                                    compute='on_change_with_doses_semen_qty')
     semen_remaining_qty = fields.Float(
-                    string='Remaining Semen',
-                    compute='on_change_with_semen_remaining_qty')
+        string='Remaining Semen',
+        compute='on_change_with_semen_remaining_qty')
 
     @api.onchange('specie')
     def onchange_specie(self):
@@ -120,18 +105,16 @@ class SemenExtractionEvent(models.Model):
 
     def check_doses_semen_quantity(self):
         if self.semen_remaining_qty < 0.0:
-            raise except_orm(
-                'Error',
-                'More semen in doses than produced')
+            raise Warning(
+                _('More semen in doses than produced'))
 
     @api.one
     def calculate_doses(self):
         Dose_obj = self.env['farm.semen_extraction.dose']
         for extraction_event in self:
             if extraction_event.doses:
-                raise except_orm(
-                        'Error',
-                        'dose already defined')
+                raise Warning(
+                    _('dose already defined'))
             if not extraction_event.dose_bom:
                 continue
             n_doses = math.floor(extraction_event.dose_calculated_units)
@@ -146,9 +129,8 @@ class SemenExtractionEvent(models.Model):
         self.check_doses_semen_quantity()
         for extraction_event in self:
             if not extraction_event.doses:
-                raise except_orm(
-                        'Error',
-                        'no doses')
+                raise Warning(
+                    _('no doses'))
             self.get_semen_move()
             for dose in extraction_event.doses:
                 dose.get_production()
@@ -160,9 +142,9 @@ class SemenExtractionEvent(models.Model):
         move_obj = self.env['stock.move']
         lot_obj = self.env['stock.production.lot']
         new_lot = lot_obj.create({
-                'product_id': self.specie.semen_product.id})
+            'product_id': self.specie.semen_product.id})
         production_location = self.env['stock.location'].search(
-                        [('usage', '=', 'production')])
+            [('usage', '=', 'production')])
         new_move = move_obj.create({
             'name': 'extrac' + new_lot.name,
             'product_id': self.specie.semen_product.id,
@@ -228,13 +210,13 @@ class SemenExtractionDose(models.Model):
     @api.one
     def get_production(self):
         production_location = self.env['stock.location'].search(
-                        [('usage', '=', 'production')])
+            [('usage', '=', 'production')])
         production_obj = self.env['mrp.production']
         products_obj = self.env['product.product']
         produce_line_obj = self.env['mrp.product.produce.line']
         wiz_product_produce_obj = self.env['mrp.product.produce']
         manu_product = products_obj.search(
-                [('product_tmpl_id', '=', self.bom.product_tmpl_id.id)])
+            [('product_tmpl_id', '=', self.bom.product_tmpl_id.id)])
         new_production = production_obj.create({
             'name': self.event,
             'date_planned': self.event.timestamp,
@@ -268,8 +250,8 @@ class SemenExtractionDose(models.Model):
                 'produce_id': new_wiz_production.id,
                 })
         new_production.action_produce(
-                new_production.id, self.quantity,
-                'consume_produce', new_wiz_production)
+            new_production.id, self.quantity,
+            'consume_produce', new_wiz_production)
         new_production.action_production_end()
         self.production = new_production
         self.lot = new_lot

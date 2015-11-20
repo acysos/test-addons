@@ -1,26 +1,10 @@
-# -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    @authors: Alexander Ezquevo <alexander@acysos.com>
-#    Copyright (C) 2015  Acysos S.L.
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
+# -*- coding: utf-8 -*-
+# @authors: Alexander Ezquevo <alexander@acysos.com>
+# Copyright (C) 2015  Acysos S.L.
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 from openerp import models, fields, api, _
-from openerp.exceptions import except_orm
+from openerp.exceptions import Warning
 from datetime import datetime
 
 
@@ -124,7 +108,7 @@ class AnimalGroup(models.Model):
                 ('to_location.id', 'not in', transition_location)])
             wean_day = datetime.strptime(wean.timestamp, DFORMAT)
             transition_finish = datetime.strptime(
-                                    transition.timestamp, DFORMAT)
+                transition.timestamp, DFORMAT)
             self.transition_days = (transition_finish - wean_day).days
 
     @api.one
@@ -141,7 +125,7 @@ class AnimalGroup(models.Model):
                 ('from_location.id', 'in', transition_location),
                 ('to_location.id', 'not in', transition_location)])
             transition_finish = datetime.strptime(
-                                    transition.timestamp, DFORMAT)
+                transition.timestamp, DFORMAT)
             if self.state == 'fatten':
                 self.fattening_days = (
                     datetime.today() - transition_finish).days
@@ -150,7 +134,7 @@ class AnimalGroup(models.Model):
                 sale_move = moves_obj.search([
                     ('animal_group', '=', self.id)])
                 sale_day = datetime.strptime(
-                        sale_move.timestamp, DFORMAT)
+                    sale_move.timestamp, DFORMAT)
                 self.fattening_days = (sale_day - transition_finish).days
 
     @api.multi
@@ -170,14 +154,13 @@ class AnimalGroup(models.Model):
                             'lot': new_lot.id,
                             'animal_group': res.id})
             quant = quant_obj.search([(
-                    'lot_id', '=', record.lot[0].lot.id)])
+                'lot_id', '=', record.lot[0].lot.id)])
             record.location = record.initial_location
             if len(record.lot) > 1:
-                    raise except_orm(
-                        'Error',
-                        'lots can not be mixed in an initial group, create a'
-                        ' group for each lot and then group them into the'
-                        ' desired group')
+                    raise Warning(
+                        _('lots can not be mixed in an initial group, create a'
+                          ' group for each lot and then group them into the'
+                          ' desired group'))
             elif record.origin == 'raised':
                 if not quant:
                     raise_location = self.env['stock.location'].search(
@@ -198,30 +181,25 @@ class AnimalGroup(models.Model):
                     new_move.quant_ids.lot_id = record.lot[0].lot.id
                     self.stock_move = new_move
                 else:
-                    raise except_orm(
-                        'Error',
-                        'this lot iis in use, please create new lot')
+                    raise Warning(
+                        _('this lot iis in use, please create new lot'))
             else:
                 if not quant:
-                    raise except_orm(
-                        'Error',
-                        'no product in farms for this lot')
+                    raise Warning(
+                        _('no product in farms for this lot'))
                 elif quant.location_id != record.initial_location:
-                    raise except_orm(
-                        'Error',
-                        'group location and product location are diferent')
+                    raise Warning(
+                        _('group location and product location are diferent'))
                 elif quant.qty != record.initial_quantity:
-                    raise except_orm(
-                        'Error',
-                        'group intial quantity and product quantity '
-                        'are diferent')
+                    raise Warning(
+                        _('group intial quantity and product quantity '
+                          'are diferent'))
                 an_group = self.env['farm.animal.group'].search([
-                        ('lot.lot.id', '=', record.lot.lot.id),
-                        ('id', '!=', record.id)])
+                    ('lot.lot.id', '=', record.lot.lot.id),
+                    ('id', '!=', record.id)])
                 if len(an_group) > 0:
-                    raise except_orm(
-                        'Error',
-                        'this lot is in use from oder group')
+                    raise Warning(
+                        _('this lot is in use from oder group'))
                 current_move = moves_obj.search([
                     ('quant_ids.id', '=', record.lot.lot.id)])
                 self.stock_move = current_move
@@ -234,7 +212,7 @@ class AnimalGroup(models.Model):
         res.quantity = res.initial_quantity
         analy_ac_obj = self.env['account.analytic.account']
         new_account = analy_ac_obj.create({
-                    'name': 'AA-group-'+res.number})
+            'name': 'AA-group-'+res.number})
         res.account = new_account
         return res
 

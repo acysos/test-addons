@@ -1,26 +1,10 @@
-# -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    @authors: Alexander Ezquevo <alexander@acysos.com>
-#    Copyright (C) 2015  Acysos S.L.
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
+# -*- coding: utf-8 -*-
+# @authors: Alexander Ezquevo <alexander@acysos.com>
+# Copyright (C) 2015  Acysos S.L.
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 from openerp import models, fields, api, _
-from openerp.exceptions import except_orm
+from openerp.exceptions import Warning
 
 ANIMAL_TYPE = [(None, 'No animal'), ('male', 'Male)'), ('female', 'Female'),
                ('individual', 'Individual'), ('group', 'Group'), ]
@@ -33,7 +17,7 @@ class stock_move(models.Model):
     def action_done(self):
         super(stock_move, self).action_done()
         customer_location = self.env['stock.location'].search([
-                ('usage', '=', 'customer')])
+            ('usage', '=', 'customer')])
         for line in self:
             if customer_location.id == line.location_dest_id.id:
                 lots = []
@@ -57,24 +41,23 @@ class stock_move(models.Model):
                     if lot.qty == group.quantity:
                         self.totalSale(group, lot.qty)
                     else:
-                        raise except_orm(
-                            'Error',
-                            'Sale cuantity are diferent than group size')
+                        raise Warning(
+                            _('Sale cuantity are diferent than group size'))
 
     @api.one
     def totalSale(self, group, qty):
         group.state = 'sold'
         farm_mov_obj = self.env['farm.move.event']
         farm_mov_obj.create({
-                    'animal_type': 'group',
-                    'specie': group.specie.id,
-                    'farm': group.farm.id,
-                    'animal_group': group.id,
-                    'from_location': group.location.id,
-                    'to_location': self.location_dest_id.id,
-                    'quantity': qty,
-                    'unit_price': 1,
-                            })
+            'animal_type': 'group',
+            'specie': group.specie.id,
+            'farm': group.farm.id,
+            'animal_group': group.id,
+            'from_location': group.location.id,
+            'to_location': self.location_dest_id.id,
+            'quantity': qty,
+            'unit_price': 1,
+            })
 
 
 class Lot(models.Model):

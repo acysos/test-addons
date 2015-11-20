@@ -1,25 +1,9 @@
-# -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    @authors: Alexander Ezquevo <alexander@acysos.com>
-#    Copyright (C) 2015  Acysos S.L.
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
+# -*- coding: utf-8 -*-
+# @authors: Alexander Ezquevo <alexander@acysos.com>
+# Copyright (C) 2015  Acysos S.L.
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
-from openerp import models, fields,  _
+from openerp import models, fields
 
 INVENTORY_STATES = [
     ('draft', 'Draft'),
@@ -30,6 +14,7 @@ INVENTORY_STATES = [
 
 class FeedInventoryMixin(models.Model):
     _name = 'farm.feed.inventory.mixin'
+    _auto = False
 
     specie = fields.Many2one(comodel_name='farm.specie', string='Specie',
                              required=True, select=True)
@@ -71,6 +56,7 @@ class FeedInventoryLocation(models.Model):
 class FeedInventory(models.Model):
     _name = 'farm.feed.inventory'
     _inherit = {'farm.feed.inventory.mixin': 'FeedInventoryMixin_id'}
+    _auto = True
 
     prev_inventory = fields.Many2one(comodel_name='farm.feed.inventory',
                                      string='Previous Inventory',
@@ -80,6 +66,7 @@ class FeedInventory(models.Model):
 class FeedProvisionalInventory(models.Model):
     _name = 'farm.feed.provisional_inventory'
     _inherit = {'farm.feed.inventory.mixin': 'FeedInventoryMixin_id'}
+    _auto = True
 
     prev_inventory_date = fields.Date(string='Previous Inventory Date',
                                       readonly=True,

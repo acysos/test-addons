@@ -1,30 +1,15 @@
-# -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    @authors: Alexander Ezquevo <alexander@acysos.com>
-#    Copyright (C) 2015  Acysos S.L.
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
+# -*- coding: utf-8 -*-
+# @authors: Alexander Ezquevo <alexander@acysos.com>
+# Copyright (C) 2015  Acysos S.L.
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
-from openerp import models, fields, api, _
+from openerp import models, fields, api
 
 
 class FeedEvent(models.Model):
     _name = 'farm.feed.event'
     _inherit = {'farm.event.feed_mixin': 'FeedEventMixin_id'}
+    _auto = True
 
     animal_type = fields.Selection([
         ('male', 'Male'), ('female', 'Female'),
@@ -92,35 +77,34 @@ class FeedEvent(models.Model):
     @api.one
     def set_cost(self, account, lot, qty):
         company = self.env['res.company'].search([
-                        ('id', '=', self.farm.company_id.id)])
+            ('id', '=', self.farm.company_id.id)])
         journal = self.env['account.analytic.journal'].search([
-                                ('code', '=', 'FAR')])
+            ('code', '=', 'FAR')])
         analytic_line_obj = self.env['account.analytic.line']
         if lot.unit_cost:
             cost = lot.unit_cost * qty
         else:
             quants_obj = self.env['stock.quant']
             quants = quants_obj.search([
-                    ('lot_id', '=', self.feed_lot.id),
-                    ('location_id', '=', self.location.id)])
+                ('lot_id', '=', self.feed_lot.id),
+                ('location_id', '=', self.location.id)])
             if len(quants) < 1:
                 quants = quants_obj.search([
-                            ('location_id', '=', self.location.id)])
+                    ('location_id', '=', self.location.id)])
             cost = quants[0].cost * qty
         analytic_line_obj.create({
-                    'name': self.job_order.name,
-                    'date': self.end_date,
-                    'amount': -(cost),
-                    'unit_amount': qty,
-                    'account_id': account.id,
-                    'general_account_id': company.feed_account.id,
-                    'journal_id': journal.id,
-                    })
+            'name': self.job_order.name,
+            'date': self.end_date,
+            'amount': -(cost),
+            'unit_amount': qty,
+            'account_id': account.id,
+            'general_account_id': company.feed_account.id,
+            'journal_id': journal.id,
+            })
 
     def get_inventory(self):
         irModel_obj = self.env['ir.model']
         models = irModel_obj.search([
-                ('model', 'in', ['farm.feed.inventory',
-                                 'farm.feed.provisional_inventory']),
-                ])
+            ('model', 'in', ['farm.feed.inventory',
+                             'farm.feed.provisional_inventory']), ])
         return [('', '')] + [(m.model, m.name) for m in models]

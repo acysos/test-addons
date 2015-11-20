@@ -1,26 +1,10 @@
-# -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    @authors: Alexander Ezquevo <alexander@acysos.com>
-#    Copyright (C) 2015  Acysos S.L.
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
+# -*- coding: utf-8 -*-
+# @authors: Alexander Ezquevo <alexander@acysos.com>
+# Copyright (C) 2015  Acysos S.L.
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 from openerp import models, fields, api, _
-from openerp.exceptions import except_orm
+from openerp.exceptions import Warning
 
 
 class FarrowingProblem(models.Model):
@@ -33,6 +17,7 @@ class FarrowingEvent(models.Model):
     _name = 'farm.farrowing.event'
     _inherit = {'farm.event.import.mixin': 'ImportedEventMixin_id'}
     _rec_name = 'animal'
+    _auto = True
 
     live = fields.Integer(string='Live')
     stillborn = fields.Integer(string='Stillborn')
@@ -57,17 +42,14 @@ class FarrowingEvent(models.Model):
     @api.one
     def confirm(self):
         if not self.is_compatible():
-            raise except_orm(
-                'Error',
-                "Only females can be farrow")
+            raise Warning(
+                _("Only females can be farrow"))
         if not self.is_ready():
-            raise except_orm(
-                'Error',
-                "Only diagnosticated pregnant females can be farrow")
+            raise Warning(
+                _("Only diagnosticated pregnant females can be farrow"))
         if self.dead == 0 and self.live == 0:
-            raise except_orm(
-                'Error',
-                'no deads and no lives')
+            raise Warning(
+                _('no deads and no lives'))
         farrowing_cycle_obj = self.env['farm.farrowing.event_female_cycle']
         farrrowing_animalGroup_obj = self.env['farm.farrowing.event_group']
         location_obj = self.env['farm.foster.locations']
@@ -80,8 +62,8 @@ class FarrowingEvent(models.Model):
              ],
             ).location
         farrowing_cycle_obj.create({
-                'event': self.id,
-                'cycle': self.animal.current_cycle.id})
+            'event': self.id,
+            'cycle': self.animal.current_cycle.id})
         if self.live != 0:
             self.get_female_move(foster_location)
             new_group = self.get_produced_group()
@@ -100,9 +82,9 @@ class FarrowingEvent(models.Model):
         moves_obj = self.env['stock.move']
         quants_obj = self.env['stock.quant']
         target_quant = quants_obj.search([
-                ('lot_id', '=', self.animal.lot.lot.id),
-                ('location_id', '=', self.animal.location.id),
-                ])
+            ('lot_id', '=', self.animal.lot.lot.id),
+            ('location_id', '=', self.animal.location.id),
+            ])
         fem_move = moves_obj.create({
             'name': 'foster-mother-' + self.animal.lot.lot.name,
             'create_date': fields.Date.today(),

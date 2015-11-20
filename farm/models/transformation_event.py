@@ -1,40 +1,25 @@
-# -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    @authors: Alexander Ezquevo <alexander@acysos.com>
-#    Copyright (C) 2015  Acysos S.L.
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
+# -*- coding: utf-8 -*-
+# @authors: Alexander Ezquevo <alexander@acysos.com>
+# Copyright (C) 2015  Acysos S.L.
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 from openerp import models, fields, api,  _
-from openerp.exceptions import except_orm
+from openerp.exceptions import Warning
 
 
 class TransformationEvent(models.Model):
     _name = 'farm.transformation.event'
     _inherit = {'farm.event': 'AbstractEvent_id'}
+    _auto = True
 
     from_location = fields.Many2one(comodel_name='stock.location',
                                     string='Origin', required=True)
     to_animal_type = fields.Selection(selection=[
-            ('male', 'Male'),
-            ('female', 'Female'),
-            ('individual', 'Individual'),
-            ('group', 'Group'),
-            ], string='Animal Type to Trasform', requiered=True)
+        ('male', 'Male'),
+        ('female', 'Female'),
+        ('individual', 'Individual'),
+        ('group', 'Group'),
+        ], string='Animal Type to Trasform', requiered=True)
     to_location = fields.Many2one(comodel_name='stock.location',
                                   string='Destination', required=True,
                                   domain=[('usage', '=', 'internal'),
@@ -66,10 +51,8 @@ class TransformationEvent(models.Model):
     @api.one
     def confirm(self):
         if not self.is_compatible_trasformation():
-            raise except_orm(
-                'Error',
-                'Destination animal type no compatible')
-            return False
+            raise Warning(
+                _('Destination animal type no compatible'))
         elif not self.is_compatible_quant():
             return False
         elif not self.is_compatible_to_location():
@@ -100,20 +83,14 @@ class TransformationEvent(models.Model):
             self.animal_type == 'male' or \
                 self.animal_type == 'female' or self.to_animal_type != 'group':
             if self.quantity != 1:
-                raise except_orm(
-                    'Error',
-                    'Quantity no compatible')
-                return False
+                raise Warning(
+                    _('Quantity no compatible'))
         elif self.animal_group.quantity < self.quantity:
-            raise except_orm(
-                'Error',
-                'quantity is biger than group quantity')
-            return False
+            raise Warning(
+                _('quantity is biger than group quantity'))
         elif self.quantity < 1:
-            raise except_orm(
-                'Error',
-                'quantity is smaler than one')
-            return False
+            raise Warning(
+                _('quantity is smaler than one'))
         return True
 
     def is_compatible_to_location(self):
@@ -121,23 +98,19 @@ class TransformationEvent(models.Model):
             if self.to_animal_group != self.animal_group:
                 if self.to_animal_group.location.id != \
                         self.to_location.id:
-                    raise except_orm(
-                        'Error',
-                        'the destination is different from the location of'
-                        ' the destination group')
-                    return False
+                    raise Warning(
+                        _('the destination is different from the location of'
+                          ' the destination group'))
         elif self.animal_type != 'group':
             if self.to_animal_group.location.id != \
-                        self.to_location.id:
-                    raise except_orm(
-                        'Error',
-                        'the destination is different from the location of'
-                        ' the destination group')
+                    self.to_location.id:
+                raise Warning(
+                    _('the destination is different from the location of'
+                      ' the destination group'))
         elif self.animal_group.location == self.to_location:
-            raise except_orm(
-                        'Error',
-                        'the destination of animal is the same of the location'
-                        'of the origin group')
+            raise Warning(
+                _('the destination of animal is the same of the location'
+                  'of the origin group'))
         return True
 
     @api.one
@@ -156,20 +129,20 @@ class TransformationEvent(models.Model):
             initial_location = self.animal_group.location.id
             lot_id = lot.lot.id
             duplicate_lot = animal_group_lot_obj.create({
-                        'animal_group': self.to_animal_group.id,
-                        'lot': lot.lot.id})
+                'animal_group': self.to_animal_group.id,
+                'lot': lot.lot.id})
             lots.append(duplicate_lot.id)
         self.to_animal_group.initial_quantity += self.quantity
         self.to_animal_group.quantity += self.quantity
         target_quant = quants_obj.search([
-                ('lot_id', '=', lot_id),
-                ('location_id', '=', initial_location),
-                ])
+            ('lot_id', '=', lot_id),
+            ('location_id', '=', initial_location),
+            ])
         if len(self.to_animal_group.lot) < 3:
             new_lot = production_lot_obj.create({
-                    'product_id': product_id,
-                    'animal_type': 'group',
-                    })
+                'product_id': product_id,
+                'animal_type': 'group',
+                })
             new_animal_group_lot = animal_group_lot_obj.create({
                 'lot': new_lot.id,
                 'animal_group': self.to_animal_group.id})
@@ -222,6 +195,7 @@ class TransformationEvent(models.Model):
         while(location.location_id.id != 1):
             location = location.location_id
         return location
+
     @api.one
     def group_to_indvidual(self):
         moves_obj = self.env['stock.move']
@@ -235,9 +209,9 @@ class TransformationEvent(models.Model):
         else:
             lot = self.animal_group.lot.lot
         target_quant = quants_obj.search([
-                ('lot_id', '=', lot.id),
-                ('location_id', '=', self.animal_group.location.id),
-                ])
+            ('lot_id', '=', lot.id),
+            ('location_id', '=', self.animal_group.location.id),
+            ])
         product_uom = \
             lot.product_id.product_tmpl_id.uom_id.id
         new_move = moves_obj.create({
@@ -267,7 +241,7 @@ class TransformationEvent(models.Model):
         else:
             animal.product_id = self.animal_group.specie.individual_product.id
         new_lot = production_lot_obj.create({
-                    'product_id': animal.product_id.id
+            'product_id': animal.product_id.id
                     })
         animal.lot_id = new_lot
         self.move = new_move
@@ -286,8 +260,8 @@ class TransformationEvent(models.Model):
             'sex': sex[self.to_animal_type],
             })
         animal_lot_obj.create({
-                'animal': new_animal.id,
-                'lot': new_lot.id})
+            'animal': new_animal.id,
+            'lot': new_lot.id})
         new_animal.origin = 'raised'
         self.to_animal = new_animal
 
@@ -299,11 +273,10 @@ class TransformationEvent(models.Model):
             lot_id = self.animal_group.lot[2].lot.id
         else:
             lot_id = self.animal_group.lot[0].lot.id
-        print 'dos'
         target_quant = quants_obj.search([
-                ('lot_id', '=', lot_id),
-                ('location_id', '=', self.animal_group.location.id),
-                ])
+            ('lot_id', '=', lot_id),
+            ('location_id', '=', self.animal_group.location.id),
+            ])
         m_g_move = moves_obj.create({
             'name': 'relocation-' + self.animal_group.number,
             'create_date': fields.Date.today(),
@@ -317,7 +290,6 @@ class TransformationEvent(models.Model):
             'company_id': self.animal_group.farm.company_id.id, })
         for q in target_quant:
             q.reservation_id = m_g_move.id
-        print 'tres'
         m_g_move.action_done()
         self.move = m_g_move
         self.animal_group.location = self.to_location
@@ -345,13 +317,13 @@ class TransformationEvent(models.Model):
         self.to_animal_group.initial_quantity += self.quantity
         self.to_animal_group.quantity += self.quantity
         target_quant = quants_obj.search([
-                ('lot_id', '=', lot_id),
-                ('location_id', '=', initial_location),
-                ])
+            ('lot_id', '=', lot_id),
+            ('location_id', '=', initial_location),
+            ])
         if len(self.to_animal_group.lot) < 3:
             new_lot = production_lot_obj.create({
-                    'product_id': product_id
-                    })
+                'product_id': product_id
+                })
         else:
             new_lot = self.to_animal_group.lot[2]
         new_animal_group_lot = animal_group_lot_obj.create({

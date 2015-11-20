@@ -1,26 +1,10 @@
-# -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    @authors: Alexander Ezquevo <alexander@acysos.com>
-#    Copyright (C) 2015  Acysos S.L.
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
+# -*- coding: utf-8 -*-
+# @authors: Alexander Ezquevo <alexander@acysos.com>
+# Copyright (C) 2015  Acysos S.L.
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 from openerp import models, fields, api, _
-from openerp.exceptions import except_orm
+from openerp.exceptions import Warning
 
 EVENT_STATES = [
     ('draft', 'Draft'),
@@ -36,25 +20,25 @@ class EventOrder(models.Model):
     state = fields.Selection(string='State', selection=EVENT_STATES,
                              default='draft')
     animal_type = fields.Selection([
-            ('male', 'Male'),
-            ('female', 'Female'),
-            ('individual', 'Individual'),
-            ('group', 'Group'),
-            ], string='Animal Type',
-            select=True)
+        ('male', 'Male'),
+        ('female', 'Female'),
+        ('individual', 'Individual'),
+        ('group', 'Group'),
+        ], string='Animal Type',
+        select=True)
     specie = fields.Many2one(comodel_name='farm.specie', string='Specie',
                              select=True, required=True)
     event_type = fields.Selection([
-            ('medication', 'Medications'),
-            ('insemination', 'Inseminations'),
-            ('pregnancy_diagnosis', 'Pregnancy Diagnosis'),
-            ('abort', 'Aborts'),
-            ('farrowing', 'Farrowings'),
-            ('foster', 'Fosters'),
-            ('feed', 'Feed'),
-            ('weaning', 'Weanings'),
-            ('trasformation_event', 'Trasformation Event'),
-            ], string="Event Type", required=True, select=True)
+        ('medication', 'Medications'),
+        ('insemination', 'Inseminations'),
+        ('pregnancy_diagnosis', 'Pregnancy Diagnosis'),
+        ('abort', 'Aborts'),
+        ('farrowing', 'Farrowings'),
+        ('foster', 'Fosters'),
+        ('feed', 'Feed'),
+        ('weaning', 'Weanings'),
+        ('trasformation_event', 'Trasformation Event'),
+        ], string="Event Type", required=True, select=True)
     farm = fields.Many2one(comodel_name='stock.location', string='Farm',
                            required=True,
                            domain=[('usage', '=', 'view'), ])
@@ -89,8 +73,8 @@ class EventOrder(models.Model):
                                   column1='feed_inventory',
                                   string='feed')
     trasformation_events = fields.One2many(
-                    comodel_name='farm.transformation.event',
-                    inverse_name='job_order', string='Tasformation Events')
+        comodel_name='farm.transformation.event',
+        inverse_name='job_order', string='Tasformation Events')
     notes = fields.Text(string='Notes')
 
     def get_active_events(self):
@@ -119,9 +103,8 @@ class EventOrder(models.Model):
         if(self.confirm_event(self.get_active_events())):
                 self.state = 'validated'
         else:
-            raise except_orm(
-                'Error',
-                'There are no event associated with this work order')
+            raise Warning(
+                _('There are no event associated with this work order'))
 
     def confirm_event(self, event_type):
         events = event_type.search([('state', '=', 'draft'),
@@ -129,19 +112,16 @@ class EventOrder(models.Model):
         control = False
         for event in events:
             if event.farm.id != self.farm.id:
-                raise except_orm(
-                    'Error',
-                    'The values of farm are diferent on order and events')
+                raise Warning(
+                    _('The values of farm are diferent on order and events'))
             elif self.animal_type:
                 if event.animal_type != self.animal_type:
-                    raise except_orm(
-                        'Error',
-                        'The values of animal type are diferent on order'
-                        ' and events')
+                    raise Warning(
+                        _('The values of animal type are diferent on order'
+                          ' and events'))
             if event.specie != self.specie:
-                raise except_orm(
-                    'Error',
-                    'The values of specie are diferent on order and events')
+                raise Warning(
+                    _('The values of specie are diferent on order and events'))
             else:
                 control = event.confirm()
                 if control is None:

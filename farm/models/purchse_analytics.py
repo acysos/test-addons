@@ -1,26 +1,10 @@
-# -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    @authors: Alexander Ezquevo <alexander@acysos.com>
-#    Copyright (C) 2015  Acysos S.L.
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
+# -*- coding: utf-8 -*-
+# @authors: Alexander Ezquevo <alexander@acysos.com>
+# Copyright (C) 2015  Acysos S.L.
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 from openerp import models, fields, api, _
-from openerp.exceptions import except_orm
+from openerp.exceptions import Warning
 from datetime import datetime, timedelta
 
 DFORMAT = "%Y-%m-%d %H:%M:%S"
@@ -48,9 +32,9 @@ class PurchaseOrder(models.Model):
                         start_date = \
                             datetime.strptime(line.start_date, DFORMAT).date()
                         end_date = datetime.strptime(
-                                    line.end_date, DFORMAT).date()
+                            line.end_date, DFORMAT).date()
                         afected_animals = self.get_party_per_day(
-                                            start_date, end_date, line.farm)
+                            start_date, end_date, line.farm)
                         num_days = (end_date - start_date).days+1
                         self.set_analytics(afected_animals, line, num_days)
 
@@ -63,14 +47,13 @@ class PurchaseOrder(models.Model):
     def get_party_per_day(self, start_date, end_date, farm):
         pass_days = (end_date-start_date).days
         if pass_days < 1 or not end_date or not start_date:
-            raise except_orm(
-                        'Error',
-                        'the bill should have lower starting date '
-                        'to the final')
+            raise Warning(
+                _('the bill should have lower starting date '
+                  'to the final'))
         ani_groups_obj = self.env['farm.animal.group'].with_context({}).search(
-                                [('id', '!=', False)])
+            [('id', '!=', False)])
         ani_obj = self.env['farm.animal'].with_context({}).search(
-                                [('id', '!=', False)])
+            [('id', '!=', False)])
         party_per_day = {}
         animal_per_day = {}
         current_day = end_date
@@ -88,9 +71,9 @@ class PurchaseOrder(models.Model):
                             ('to_location.id', 'not in', transition_location)])
             if party.state == 'sold':
                 sale_move = self.env['farm.move.event'].with_context(
-                        {}).search([('animal_group', '=', party.id)])
+                    {}).search([('animal_group', '=', party.id)])
                 sale_day = datetime.strptime(
-                                    sale_move.timestamp, DFORMAT).date()
+                    sale_move.timestamp, DFORMAT).date()
                 transition_finish = datetime.strptime(transition.timestamp,
                                                       DFORMAT).date()
                 if (start_date - sale_day).days < 0 and party.farm == farm:
@@ -132,7 +115,7 @@ class PurchaseOrder(models.Model):
                 if party.farm == farm:
                     control_date = self.get_control_date2(party, start_date)
                     self.add_party(
-                            party_per_day, party, end_date, control_date)
+                        party_per_day, party, end_date, control_date)
         for animal in ani_obj:
             if animal.farm == farm:
                 control_date = self.get_control_date2(animal, start_date)
@@ -172,38 +155,38 @@ class PurchaseOrder(models.Model):
                 self.set_party_cost(party, d, cost_per_animal_day)
             for animal in afected_animals[1][d]:
                 self.set_animal_cost(animal, d, cost_per_animal_day)
-            num_days -= num_days -1
+            num_days -= num_days-1
 
     @api.one
     def set_party_cost(self, party, date, cost_per_animal_day):
         company = self.env['res.company'].with_context({}).search([
-                        ('id', '=', party.farm.company_id.id)])
+            ('id', '=', party.farm.company_id.id)])
         journal = self.env['account.analytic.journal'].with_context(
-                            {}).search([('code', '=', 'PUR')])
+            {}).search([('code', '=', 'PUR')])
         analytic_line_obj = self.env['account.analytic.line']
         analytic_line_obj.create({
-                    'name': self.name,
-                    'date': date,
-                    'amount': -(cost_per_animal_day * party.quantity),
-                    'unit_amount': party.quantity,
-                    'account_id': party.account.id,
-                    'general_account_id': company.feed_account.id,
-                    'journal_id': journal.id,
-                    })
+            'name': self.name,
+            'date': date,
+            'amount': -(cost_per_animal_day * party.quantity),
+            'unit_amount': party.quantity,
+            'account_id': party.account.id,
+            'general_account_id': company.feed_account.id,
+            'journal_id': journal.id,
+            })
 
     @api.one
     def set_animal_cost(self, animal, date, cost_per_animal_day):
         company = self.env['res.company'].with_context({}).search([
-                        ('id', '=', animal.farm.company_id.id)])
+            ('id', '=', animal.farm.company_id.id)])
         journal = self.env['account.analytic.journal'].with_context(
-                                {}).search([('code', '=', 'PUR')])
+            {}).search([('code', '=', 'PUR')])
         analytic_line_obj = self.env['account.analytic.line']
         analytic_line_obj.create({
-                    'name': self.name,
-                    'date': date,
-                    'amount': -cost_per_animal_day,
-                    'unit_amount': 1,
-                    'account_id': animal.account.id,
-                    'general_account_id': company.feed_account.id,
-                    'journal_id': journal.id,
-                    })
+            'name': self.name,
+            'date': date,
+            'amount': -cost_per_animal_day,
+            'unit_amount': 1,
+            'account_id': animal.account.id,
+            'general_account_id': company.feed_account.id,
+            'journal_id': journal.id,
+            })

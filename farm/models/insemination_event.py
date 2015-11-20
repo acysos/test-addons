@@ -1,32 +1,17 @@
-# -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    @authors: Alexander Ezquevo <alexander@acysos.com>
-#    Copyright (C) 2015  Acysos S.L.
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
+# -*- coding: utf-8 -*-
+# @authors: Alexander Ezquevo <alexander@acysos.com>
+# Copyright (C) 2015  Acysos S.L.
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 from openerp import models, fields, api, _
-from openerp.exceptions import except_orm
+from openerp.exceptions import Warning
 
 
 class InseminationEvent(models.Model):
     _name = 'farm.insemination.event'
     _inherit = {'farm.event.import.mixin': 'ImportedEventMixin_id'}
     _rec_name = 'animal'
+    _auto = True
 
     dose_bom = fields.Many2one(comodel_name='mrp.bom', string='Dose',
                                domain=[(('semen_dose', '=', True))])
@@ -42,9 +27,8 @@ class InseminationEvent(models.Model):
     @api.one
     def confirm(self):
         if not self.is_compatible():
-            raise except_orm(
-                'Error',
-                "Only females can be bred")
+            raise Warning(
+                _("Only females can be bred"))
         current_cycle = self.animal.current_cycle
         if (not current_cycle or current_cycle.diagnosis_events or
                 current_cycle.farrowing_event):
@@ -52,9 +36,8 @@ class InseminationEvent(models.Model):
         elif not self.female_cycle:
             self.female_cycle = self.animal.current_cycle
         if not self.is_ready():
-            raise except_orm(
-                'Error',
-                "female's cycle is not compatible to be bred")
+            raise Warning(
+                _("female's cycle is not compatible to be bred"))
         self.get_event_move()
         self.animal.update_state()
         self.female_cycle.update_state(self)
@@ -62,14 +45,12 @@ class InseminationEvent(models.Model):
 
     @api.onchange('dose_bom')
     def onchange_specie(self):
-        print 'entra'
         product_obj = self.env['product.product']
         dose_pro = product_obj.search(
-                [('product_tmpl_id', '=', self.dose_bom.product_tmpl_id.id)])
+            [('product_tmpl_id', '=', self.dose_bom.product_tmpl_id.id)])
         product_ids = []
         for product in dose_pro:
             product_ids.append(product.id)
-        print product_ids
         return {'domain': {
                 'dose_product': [('id', 'in', product_ids)]}}
 
@@ -83,9 +64,8 @@ class InseminationEvent(models.Model):
             ('qty', '>', 1),
             ])
         if not target_quant:
-            raise except_orm(
-                             'Error',
-                             'semen dose no avairable')
+            raise Warning(
+                _('semen dose no avairable'))
         new_move = moves_obj.create({
             'name': 'ins' + self.dose_lot.name,
             'create_date': fields.Date.today(),
@@ -132,4 +112,4 @@ class InseminationEvent(models.Model):
     def create_new_female_cycle(self):
         female_clicle_obj = self.env['farm.animal.female_cycle']
         self.female_cycle = female_clicle_obj.create(
-                {'animal': self.animal.id, })
+            {'animal': self.animal.id, })

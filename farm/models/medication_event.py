@@ -1,9 +1,15 @@
-from openerp import models, fields, api, _
+# -*- coding: utf-8 -*-
+# @authors: Alexander Ezquevo <alexander@acysos.com>
+# Copyright (C) 2015  Acysos S.L.
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+
+from openerp import models, fields, api
 
 
 class MedicationEvent(models.Model):
     _name = 'farm.medication.event'
     _inherit = {'farm.event.feed_mixin': 'FeedEventMixin_id'}
+    _auto = True
 
     feed_product_uom_category = fields.Many2one(
         comodel_name='product.uom.categ', string='Feed Uom Category',
@@ -57,19 +63,19 @@ class MedicationEvent(models.Model):
         self.move = new_move
         super(MedicationEvent, self).confirm()
 
-    @api.one
+    @api.multi
     def set_cost(self, account, cost, qty):
         company = self.env['res.company'].search([
-                        ('id', '=', self.farm.company_id.id)])
+            ('id', '=', self.farm.company_id.id)])
         journal = self.env['account.analytic.journal'].search([
-                                ('code', '=', 'FAR')])
+            ('code', '=', 'FAR')])
         analytic_line_obj = self.env['account.analytic.line']
         analytic_line_obj.create({
-                    'name': self.job_order.name,
-                    'date': self.end_date,
-                    'amount': -(cost * qty),
-                    'unit_amount': qty,
-                    'account_id': account.id,
-                    'general_account_id': company.feed_account.id,
-                    'journal_id': journal.id,
-                    })
+            'name': self.job_order.name,
+            'date': self.end_date,
+            'amount': -(cost * qty),
+            'unit_amount': qty,
+            'account_id': account.id,
+            'general_account_id': company.feed_account.id,
+            'journal_id': journal.id,
+            })

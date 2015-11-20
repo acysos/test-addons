@@ -1,26 +1,10 @@
-# -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    @authors: Alexander Ezquevo <alexander@acysos.com>
-#    Copyright (C) 2015  Acysos S.L.
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
+# -*- coding: utf-8 -*-
+# @authors: Alexander Ezquevo <alexander@acysos.com>
+# Copyright (C) 2015  Acysos S.L.
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 from openerp import models, fields, api, _
-from openerp.exceptions import except_orm
+from openerp.exceptions import Warning
 
 
 class RemovalType(models.Model):
@@ -38,6 +22,7 @@ class RemovalReason(models.Model):
 class RemovalEvent(models.Model):
     _name = 'farm.removal.event'
     _inherit = {'farm.event': 'AbstractEvent_id'}
+    _auto = True
 
     from_location = fields.Many2one(comodel_name='stock.location',
                                     string='Origin', required=True,
@@ -73,9 +58,9 @@ class RemovalEvent(models.Model):
         else:
             lot = self.animal_group.lot[2].lot
         target_quant = quants_obj.search([
-                ('lot_id', '=', lot.id),
-                ('location_id', '=', self.from_location.id),
-                ])
+            ('lot_id', '=', lot.id),
+            ('location_id', '=', self.from_location.id),
+            ])
         product_uom = \
             lot.product_id.product_tmpl_id.uom_id.id
         new_move = moves_obj.create({
@@ -105,9 +90,9 @@ class RemovalEvent(models.Model):
         scrap_loc = self.env['stock.location'].search([
             ('scrap_location', '=', True)])[0]
         target_quant = quants_obj.search([
-                ('lot_id', '=', self.animal.lot.lot.id),
-                ('location_id', '=', self.from_location.id),
-                ])
+            ('lot_id', '=', self.animal.lot.lot.id),
+            ('location_id', '=', self.from_location.id),
+            ])
         product_uom = \
             self.animal.lot.lot.product_id.product_tmpl_id.uom_id.id
         new_move = moves_obj.create({
@@ -135,29 +120,23 @@ class RemovalEvent(models.Model):
             self.animal_type == 'male' or \
                 self.animal_type == 'female':
             if self.quantity != 1 or self.quantity < 1:
-                raise except_orm(
-                    'Error',
-                    'Quantity no compatible')
-                return False
+                raise Warning(
+                    _('Quantity no compatible'))
         elif self.quantity > self.animal_group.quantity or self.quantity < 1:
-            raise except_orm(
-                    'Error',
-                    'Quantity no compatible')
-            return False
+            raise Warning(
+                _('Quantity no compatible'))
         return True
 
     def is_compatible_to_location(self):
         if self.animal_type == 'group':
             if self.animal_group.location.id != self.from_location.id:
-                raise except_orm(
-                        'Error',
-                        'the origin is different from the location of'
-                        ' the group')
+                raise Warning(
+                    _('the origin is different from the location of'
+                      ' the group'))
         else:
             if self.animal.location.id != self.from_location.id:
-                raise except_orm(
-                        'Error',
-                        'the origin is different from the location of'
-                        ' the animal')
-                return False
-        return True                    
+                raise Warning(
+                    _('the origin is different from the location of'
+                    ' the animal'))
+        return True
+                    

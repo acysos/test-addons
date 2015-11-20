@@ -1,26 +1,10 @@
-# -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    @authors: Alexander Ezquevo <alexander@acysos.com>
-#    Copyright (C) 2015  Acysos S.L.
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
+# -*- coding: utf-8 -*-
+# @authors: Alexander Ezquevo <alexander@acysos.com>
+# Copyright (C) 2015  Acysos S.L.
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 from openerp import models, fields, api, _
-from openerp.exceptions import except_orm
+from openerp.exceptions import Warning
 from datetime import datetime
 
 ANIMAL_ORIGIN = [('purchased', 'Purchased'),
@@ -97,16 +81,14 @@ class Animal(models.Model):
     notes = fields.Text(string='Notes')
     active = fields.Boolean(string='Active', default=True)
     consumed_feed = fields.Float(string='Consumed Feed (kg)')
-    sex = fields.Selection([
-            ('male', "Male"),
-            ('female', "Female"),
-            ('undetermined', "Undetermined"),
-            ], string='Sex', required=True)
-    purpose = fields.Selection([
-            ('sale', 'Sale'),
-            ('replacement', 'Replacement'),
-            ('unknown', 'Unknown'),
-            ], string='Purpose', default='unknown')
+    sex = fields.Selection([('male', "Male"),
+                            ('female', "Female"),
+                            ('undetermined', "Undetermined"),
+                            ], string='Sex', required=True)
+    purpose = fields.Selection([('sale', 'Sale'),
+                                ('replacement', 'Replacement'),
+                                ('unknown', 'Unknown'),
+                                ], string='Purpose', default='unknown')
     account = fields.Many2one(comodel_name='account.analytic.account',
                               string='Analytic Account')
 
@@ -116,7 +98,7 @@ class Animal(models.Model):
         quant_obj = self.env['stock.quant']
         for record in res:
             quant = quant_obj.search([(
-                    'lot_id', '=', record.lot.lot.id)])
+                'lot_id', '=', record.lot.lot.id)])
             if record.origin == 'raised':
                 if not quant:
                     raise_location = self.env['stock.location'].search(
@@ -136,18 +118,15 @@ class Animal(models.Model):
                     new_move.action_done()
                     new_move.quant_ids.lot_id = record.lot.lot.id
                 else:
-                    raise except_orm(
-                        'Error',
-                        'this lot is in use, please create new lot')
+                    raise Warning(
+                        _('this lot is in use, please create new lot'))
             elif len(self.lot) > 0:
                 if not quant:
-                    raise except_orm(
-                        'Error',
-                        'no product in farms for this lot')
+                    raise Warning(
+                        _('no product in farms for this lot'))
                 elif quant.location_id != record.initial_location:
-                    raise except_orm(
-                        'Error',
-                        'animal location and product location are diferent')
+                    raise Warning(
+                        _('animal location and product location are diferent'))
 
     @api.model
     @api.returns('self', lambda value: value.id)
@@ -157,7 +136,7 @@ class Animal(models.Model):
         res.location = res.initial_location
         analy_ac_obj = self.env['account.analytic.account']
         new_account = analy_ac_obj.create({
-                    'name': 'AA-'+res.type+'-'+res.number})
+            'name': 'AA-'+res.type+'-'+res.number})
         res.account = new_account
         return res
 
@@ -208,13 +187,11 @@ class Female(models.Model):
     current_cycle = fields.Many2one(comodel_name='farm.animal.female_cycle',
                                     string='Current Cycle', readonly=True,
                                     compute='get_current_cycle')
-    state = fields.Selection(selection=[
-                                        ('initial', ''),
+    state = fields.Selection(selection=[('initial', ''),
                                         ('prospective', 'Prospective'),
                                         ('unmated', 'Unmated'),
                                         ('mated', 'Mated'),
-                                        ('removed', 'Removed'),
-                                        ],
+                                        ('removed', 'Removed'), ],
                              readonly=True, default='prospective',
                              help='According to NPPC Production and Financial'
                              'Standards there are four status for breeding'
@@ -223,8 +200,8 @@ class Female(models.Model):
     first_mating = fields.Date(string='First Mating',
                                compute='get_first_mating')
     days_from_insemination = fields.Integer(
-                string='Insemination Days',
-                compute='get_days_from_insemination')
+        string='Insemination Days',
+        compute='get_days_from_insemination')
     last_produced_group = fields.Many2one(comodel_name='farm.animal.group',
                                           string='Last produced group',
                                           compute='get_last_produced_group')
@@ -265,8 +242,8 @@ class Female(models.Model):
             self.first_mating = False
         else:
             first_inseminations = InseminationEvent.search([
-                    ('animal', '=', self.id),
-                    ], limit=1, order='timestamp ASC')
+                ('animal', '=', self.id),
+                ], limit=1, order='timestamp ASC')
             if not first_inseminations:
                 self.first_mating = False
             else:
@@ -277,9 +254,9 @@ class Female(models.Model):
     def get_days_from_insemination(self):
         InseminationEvent = self.env['farm.insemination.event']
         last_valid_insemination = InseminationEvent.search([
-                ('animal', '=', self.id),
-                ('state', '=', 'validated'),
-                ], order='timestamp DESC', limit=1)
+            ('animal', '=', self.id),
+            ('state', '=', 'validated'),
+            ], order='timestamp DESC', limit=1)
         if not last_valid_insemination:
             self.days_from_insemination = False
         else:
@@ -293,10 +270,10 @@ class Female(models.Model):
     def get_last_produced_group(self):
         FarrowingEvent = self.env['farm.farrowing.event']
         last_farrowing_events = FarrowingEvent.search([
-                ('animal', '=', self.id),
-                ('state', '=', 'validated'),
-                ('produced_group', '!=', None),
-                ], order='timestamp DESC', limit=1)
+            ('animal', '=', self.id),
+            ('state', '=', 'validated'),
+            ('produced_group', '!=', None),
+            ], order='timestamp DESC', limit=1)
         if last_farrowing_events:
             self.last_produced_group = \
                 last_farrowing_events[0].produced_group.id
@@ -307,14 +284,14 @@ class Female(models.Model):
     def get_days_from_farrowing(self):
         FarrowingEvent = self.env['farm.farrowing.event']
         last_valid_farrowing = FarrowingEvent.search([
-                ('animal', '=', self.id),
-                ('state', '=', 'validated'),
-                ], order='timestamp DESC', limit=1)
+            ('animal', '=', self.id),
+            ('state', '=', 'validated'),
+            ], order='timestamp DESC', limit=1)
         if not last_valid_farrowing:
             self.days_from_farrowing = False
         else:
             last_val_farrow = datetime.strptime(
-                        last_valid_farrowing[0].timestamp, DFORMAT)
+                last_valid_farrowing[0].timestamp, DFORMAT)
             days_from_farrowing = (
                 datetime.today() - last_val_farrow).days
             self.days_from_farrowing = days_from_farrowing
@@ -365,14 +342,14 @@ class FemaleCycle(models.Model):
         inverse_name='cycle', column1='event', readonly=True)
     weared = fields.Integer(string='Weared', compute='get_weaned')
     removed = fields.Integer(
-            string='Removed Quantity',
-            help='Number of removed animals from Produced Group. Diference '
-            'between born live and weaned, computing Fostered diference.',
-            compute='get_removed')
+        string='Removed Quantity',
+        help='Number of removed animals from Produced Group. Diference '
+        'between born live and weaned, computing Fostered diference.',
+        compute='get_removed')
     days_between_farrowing_weaning = fields.Integer(
-            string='Lactating Days',
-            help='Number of days between Farrowing and Weaning.',
-            compute='get_lactating_days')
+        string='Lactating Days',
+        help='Number of days between Farrowing and Weaning.',
+        compute='get_lactating_days')
 
     @api.one
     def update_state(self, validated_event):
@@ -420,7 +397,7 @@ class FemaleCycle(models.Model):
         res = super(FemaleCycle, self).create(vals)
         femaleCycle_obj = self.env['farm.animal.female_cycle']
         cycles = femaleCycle_obj.search([
-                ('animal.id', '=', res.animal.id), ])
+            ('animal.id', '=', res.animal.id), ])
         secuence = 1
         for cycle in cycles:
             if len(cycle.farrowing_event) != 0:
@@ -433,10 +410,10 @@ class FemaleCycle(models.Model):
         if not self.insemination_events:
             return False
         previous_cycles = self.search([
-                ('animal', '=', self.animal.id),
-                ('sequence', '<=', self.sequence),
-                ('id', '!=', self.id)
-                ],
+            ('animal', '=', self.animal.id),
+            ('sequence', '<=', self.sequence),
+            ('id', '!=', self.id)
+            ],
             order='sequence, ordination_date DESC', limit=1)
         if len(previous_cycles) < 1 or (
                 not previous_cycles[0].weaning_event and
@@ -458,8 +435,6 @@ class FemaleCycle(models.Model):
     @api.one
     def get_live(self):
         if self.farrowing_event:
-            print 'entra'
-            print self.farrowing_event[-1].cycle.live
             self.live = self.farrowing_event[-1].cycle.live
         else:
             self.live = False
@@ -516,10 +491,10 @@ class FemaleCycle(models.Model):
     def get_last_produced_group(self):
         farrowingEvent_obj = self.env['farm.farrowing.event']
         last_farrowing_events = farrowingEvent_obj.search([
-                ('animal', '=', self),
-                ('state', '=', 'validated'),
-                ('produced_group', '!=', None),
-                ],
+            ('animal', '=', self),
+            ('state', '=', 'validated'),
+            ('produced_group', '!=', None),
+            ],
             order='timestamp DESC', limit=1)
         if last_farrowing_events:
             return last_farrowing_events[0].produced_group.id

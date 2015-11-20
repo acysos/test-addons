@@ -1,31 +1,16 @@
-# -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    @authors: Alexander Ezquevo <alexander@acysos.com>
-#    Copyright (C) 2015  Acysos S.L.
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
+# -*- coding: utf-8 -*-
+# @authors: Alexander Ezquevo <alexander@acysos.com>
+# Copyright (C) 2015  Acysos S.L.
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 from openerp import models, fields, api, _
-from openerp.exceptions import except_orm
+from openerp.exceptions import Warning
 
 
 class FosterEvent(models.Model):
     _name = 'farm.foster.event'
     _inherit = {'farm.event.import.mixin': 'ImportedEventMixin_id'}
+    _auto = True
 
     farrowing_group = fields.Many2one(comodel_name='farm.animal.group',
                                       string='Farrowing Group')
@@ -45,13 +30,11 @@ class FosterEvent(models.Model):
     @api.one
     def confirm(self):
         if not self.is_compatible():
-            raise except_orm(
-                'Error',
-                "Only females can foster a group")
+            raise Warning(
+                _("Only females can foster a group"))
         if not self.is_ready():
-            raise except_orm(
-                'Error',
-                "Only lactating females can foster a group")
+            raise Warning(
+                _("Only lactating females can foster a group"))
         far_event = self.animal.current_cycle.farrowing_event
         self.farrowing_group = \
             far_event.event.produced_group.animal_group
@@ -65,37 +48,35 @@ class FosterEvent(models.Model):
         incoming_group = \
             self.pair_event.farrowing_event.event.produced_group.animal_group
         if incoming_group.quantity < self.quantity:
-            raise except_orm(
-                 'error',
-                 'quantity is biger than incoming group quantity'
-                             )
+            raise Warning(
+                _('quantity is biger than incoming group quantity'))
         trans_eve_obj = self.env['farm.transformation.event']
         new_trans_ev = trans_eve_obj.create({
-                'animal_type': 'group',
-                'specie': self.specie.id,
-                'farm': self.farm.id,
-                'animal_group': incoming_group.id,
-                'timestamp': self.timestamp,
-                'from_location': incoming_group.location.id,
-                'to_animal_type': 'group',
-                'to_location': self.animal.location.id,
-                'quantity': self.quantity,
-                'to_animal_group': self.farrowing_group.id,
-                })
+            'animal_type': 'group',
+            'specie': self.specie.id,
+            'farm': self.farm.id,
+            'animal_group': incoming_group.id,
+            'timestamp': self.timestamp,
+            'from_location': incoming_group.location.id,
+            'to_animal_type': 'group',
+            'to_location': self.animal.location.id,
+            'quantity': self.quantity,
+            'to_animal_group': self.farrowing_group.id,
+            })
         new_trans_ev.confirm()
         self.move = new_trans_ev.move
         foster_event_obj = self.env['farm.foster.event']
         foster_event_obj.create({
-                'aniaml': self.pair_female.id,
-                'farm': self.farm.id,
-                'state': 'validated',
-                'animal_type': 'female',
-                'farrowing_group': incoming_group.id,
-                'quantity': self.quantity,
-                'pair_female': self.animal.id,
-                'pair_event': self.female_cycle.id,
-                'female_cycle': self.pair_event.id,
-                'move': new_trans_ev.move.id})
+            'aniaml': self.pair_female.id,
+            'farm': self.farm.id,
+            'state': 'validated',
+            'animal_type': 'female',
+            'farrowing_group': incoming_group.id,
+            'quantity': self.quantity,
+            'pair_female': self.animal.id,
+            'pair_event': self.female_cycle.id,
+            'female_cycle': self.pair_event.id,
+            'move': new_trans_ev.move.id})
 
     def is_ready(self):
         if self.animal.current_cycle.state == 'lactating' and \

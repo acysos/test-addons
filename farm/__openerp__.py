@@ -35,8 +35,6 @@
         "purchase"
     ],
     "data": [
-        "security/farm_security.xml",
-        "security/ir.model.access.csv",
         "views/specie.xml",
         "views/tag.xml",
         "views/event_order.xml",
@@ -63,6 +61,8 @@
         "views/res_company.xml",
         "data/farm_data.xml",
         "views/purchase_analytics.xml",
+        "security/farm_security.xml",
+        "security/ir.model.access.csv",
     ],
     "installable": True,
 }
