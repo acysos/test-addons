@@ -32,15 +32,15 @@ addons:
 
 env:
   global:
-  - VERSION="8.0" TESTS="0" LINT_CHECK="0" TRANSIFEX="0"
-  - TRANSIFEX_USER='transbot@odoo-community.org'
+  - VERSION="8.0" TESTS="0" LINT_CHECK="0"
+  #- TRANSIFEX_USER='transbot@odoo-community.org'
   # This line contains the encrypted transifex password
   # To encrypt transifex password, install travis ruby utils with:
   #   $ gem install travis --user-install
   # and use:
   #   $ travis encrypt TRANSIFEX_PASSWORD=your-password -r owner/project
   # Secure list for current OCA projects is in https://github.com/OCA/maintainer-quality-tools/issues/194
-  - secure: cnskjzYSLkdeEoUDIhwkwqWsNKIj36JyoA/H7ByNLBphAm9Xrs/ZE8Y5AHxsXp8zQjIGnzw4fpEEO8oakmaueFTaAKlzWS2KH8NWxTjNHkIv/+TFwYsayWNG6O39021wSMQnTRDVERNlBdTwjCTBne81a50NqCeUIrtgcwycwzU=
+  #- secure: cnskjzYSLkdeEoUDIhwkwqWsNKIj36JyoA/H7ByNLBphAm9Xrs/ZE8Y5AHxsXp8zQjIGnzw4fpEEO8oakmaueFTaAKlzWS2KH8NWxTjNHkIv/+TFwYsayWNG6O39021wSMQnTRDVERNlBdTwjCTBne81a50NqCeUIrtgcwycwzU=
   # Use the following lines if you need to manually change the transifex project slug or/and the transifex organization.
   # The default project slug is owner-repo_name-version (with dash in the version string).
   # The default organization is the owner of the repo.
