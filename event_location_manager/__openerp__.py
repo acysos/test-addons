@@ -27,14 +27,14 @@
     "category": "",
     "license": "AGPL-3",
     "depends": [
-                "website_event_track",
-                "event",
-                "base",
-    ],
+        "website_event_track",
+        "event",
+        "base",
+        ],
     "data": [
-             "views/event_event.xml",
-             "security/event_location_security.xml",
-             "security/ir.model.access.csv",
-    ],
+        "views/event_event.xml",
+        "security/event_location_security.xml",
+        "security/ir.model.access.csv",
+        ],
     "installable": True,
 }
